@@ -87,7 +87,7 @@ try:
                 elif "Contact Information" in div.text:
                     contact_info = div.text
                     email_match = re.search(r'E: ([^\n]+)', contact_info)
-                    phone_match = re.search(r'P: ([0-9-]+)', contact_info)
+                    phone_match = re.search(r'P: ([0-9-.() +]+)', contact_info)
 
                     if email_match:
                         email = email_match.group(1)
@@ -123,7 +123,7 @@ try:
                  twitter, other])
         except Exception as e:
             with open(LOG_FILE_PATH, 'a') as f:
-                f.write(row[1])
+                f.write(row[1]+'\n')
 
 
 

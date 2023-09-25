@@ -60,7 +60,7 @@ try:
 
             url = link.strip()
             driver.get(url)
-            time.sleep(DELAY)
+            time.sleep(max(DELAY, 10))
 
             # try:
             #     myElem = WebDriverWait(driver, DELAY).until(
