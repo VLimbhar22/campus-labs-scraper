@@ -10,11 +10,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from src.scrapers.xpaths import DESCRIPTION
 
-LINKS_FILE_PATH = 'output/Organization_Information.csv'
-OUTPUT_FILE_PATH = 'output/Organization_Information_updated.csv'
-LOG_FILE_PATH = 'logs/recheck_organization.txt'
+LINKS_FILE_PATH = 'src/output/Organization_Information.csv'
+OUTPUT_FILE_PATH = 'src/output/Organization_Information_updated.csv'
+LOG_FILE_PATH = 'src/logs/recheck_organization.txt'
 DELAY = 1
-PROGRESS_FILE_PATH = 'input/progress.pkl'
+PROGRESS_FILE_PATH = 'src/input/progress.pkl'
 
 progress_file = open(PROGRESS_FILE_PATH, 'rb')
 
@@ -134,5 +134,5 @@ finally:
     orgs_df = pd.concat([orgs_df, pd.DataFrame(new_data)])
     orgs_df.to_csv(OUTPUT_FILE_PATH)
     print('Current Progress: ', progress_variables)
-    with open('input/progress.pkl', 'wb') as f:
+    with open('src/input/progress.pkl', 'wb') as f:
         pickle.dump(progress_variables, f)

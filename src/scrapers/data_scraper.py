@@ -1,8 +1,7 @@
 import sys
 
-sys.path.append("..")
+sys.path.append("src")
 
-from drivers.webdriver_singleton import WebDriverSingleton
 from loggers.campus_error_logger import CampusErrorLogger
 from loggers.organization_error_logger import OrganizationErrorLogger
 from progress.progress_saver import ProgressSaver
@@ -14,6 +13,10 @@ from savers.data_saver import DataSaver
 from .xpaths import LOAD_MORE_BUTTON, CATEGORY_DROPDOWN, CATEGORY_CHECKBOX, PARENT_DIV, DESCRIPTION
 from selenium.webdriver.common.keys import Keys
 import re
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver import Chrome
 
 DELAY = 1
 
@@ -24,12 +27,19 @@ class DataScraper:
     """
 
     def __init__(self):
-        self.driver = WebDriverSingleton().driver
-        self.progress_saver = ProgressSaver(file_path='../../input/progress.pkl')
-        self.campus_writer = DataSaver(csv_file_path='../../output/Organization_Information.csv')
-        self.organization_writer = DataSaver(csv_file_path='../../output/Organization_Information_updated.csv')
-        self.campus_error_logger = CampusErrorLogger('../../logs/recheck_campus.txt')
-        self.organization_error_logger = OrganizationErrorLogger('../../logs/recheck_organization.csv')
+        # Set up Chrome WebDriver
+        options = webdriver.ChromeOptions()
+        options.page_load_strategy = 'none'
+        chrome_path = ChromeDriverManager().install()
+        chrome_service = Service(chrome_path)
+        driver = Chrome(options=options, service=chrome_service)
+        driver.implicitly_wait(DELAY)
+        self.driver = driver
+        self.progress_saver = ProgressSaver(file_path='src/input/progress.pkl')
+        self.campus_writer = DataSaver(csv_file_path='src/output/Organization_Information.csv')
+        self.organization_writer = DataSaver(csv_file_path='src/output/Organization_Information_updated.csv')
+        self.campus_error_logger = CampusErrorLogger('src/logs/recheck_campus.txt')
+        self.organization_error_logger = OrganizationErrorLogger('src/logs/recheck_organization.csv')
 
     def _process_description(self, category, url):
         description = self.driver.find_element(By.XPATH, DESCRIPTION)
@@ -100,7 +110,7 @@ class DataScraper:
              facebook,
              twitter, other])
 
-    def scrape_organizations(self, file_path='../../output/Organization_Information.csv'):
+    def scrape_organizations(self, file_path='src/output/Organization_Information.csv'):
         current_organization = 0
         current_link = ''
 
@@ -133,11 +143,12 @@ class DataScraper:
         finally:
             self.progress_saver.save_progress(org_count=current_organization)
 
-    def scrape_campuses(self, links_file='../../input/links.txt'):
+    def scrape_campuses(self, links_file='src/input/links.txt'):
         current_link = ''
         current_campus = 0
         try:
             # Loop through links
+
             campus_progress = self.progress_saver.get_campus_progress()
             for index, link in enumerate(open(links_file, 'r').readlines()):
                 current_link = link

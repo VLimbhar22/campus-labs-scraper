@@ -6,7 +6,7 @@ class ProgressSaver:
     Save the progress of scraped URLs
     """
 
-    def __init__(self, file_path='input/progress.pkl'):
+    def __init__(self, file_path='src/input/progress.pkl'):
         """
         Initialize the progress saver
         :param file_path: the file path to the  pickle file where the progress of the current scraping is saved.

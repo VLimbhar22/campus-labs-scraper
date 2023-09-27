@@ -22,19 +22,28 @@ if __name__ == '__main__':
         parser.error('No arguments provided. You need to select at least one argument to run the scraper. \n'
                      'Run the scraper with -h flag to see the available options.')
         exit(0)
-    scraper = DataScraper()
-    progress_saver = ProgressSaver()
+    args = parser.parse_args()
 
-    if parser.org:
-        scraper.scrape_organizations(file_path='../input/links.txt')
-    elif parser.campus:
-        scraper.scrape_campuses(links_file='../output/Organization_Information.csv')
-    elif parser.reset:
+    if args.org:
+        print('Scraping Organizations')
+        scraper = DataScraper()
+        scraper.scrape_organizations(file_path='src/output/Organization_Information.csv')
+    elif args.campus:
+        print('Scraping Campuses to get organizations')
+        scraper = DataScraper()
+        scraper.scrape_campuses(links_file='src/input/links.txt')
+    elif args.reset:
+        progress_saver = ProgressSaver()
         progress_saver.reset_progress(True, True)
-    elif parser.recheck_campus:
-        scraper.scrape_campuses(links_file='../logs/recheck_campus.txt')
-    elif parser.recheck_org:
-        scraper.scrape_organizations(file_path='../logs/recheck_organization.csv')
+        print('Progress Reset')
+    elif args.recheck_campus:
+        print('Re-scraping failed campuses')
+        scraper = DataScraper()
+        scraper.scrape_campuses(links_file='src/logs/recheck_campus.txt')
+    elif args.recheck_org:
+        print('Re-scraping failed organizations')
+        scraper = DataScraper()
+        scraper.scrape_organizations(file_path='src/logs/recheck_organization.csv')
     else:
         parser.error('No arguments provided. You need to select at least one argument to run the scraper. \n'
                      'Run the scraper with -h flag to see the available options.')

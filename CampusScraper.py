@@ -15,7 +15,7 @@ class WebScraper:
     def __init__(self):
         self.DELAY = 1
         self.driver = self._initialize_driver()
-        self.output_writer = csv.writer(open('output/Organization_Information.csv', 'a'))
+        self.output_writer = csv.writer(open('src/output/Organization_Information.csv', 'a'))
         self.progress_variables = self._load_progress()
         self.current_organization = self.progress_variables['campus']
         self.index = 0
@@ -31,19 +31,19 @@ class WebScraper:
 
     def _load_progress(self):
         try:
-            progress_file = open('input/progress.pkl', 'rb')
+            progress_file = open('src/input/progress.pkl', 'rb')
             return pickle.load(progress_file)
         except FileNotFoundError:
             return {'campus': 0}
 
     def _save_progress(self):
         self.progress_variables['campus'] = self.index - 1
-        with open('input/progress.pkl', 'wb') as f:
+        with open('src/input/progress.pkl', 'wb') as f:
             pickle.dump(self.progress_variables, f)
 
     def scrape(self):
         try:
-            for link in open('input/links.txt', 'r').readlines():
+            for link in open('src/input/links.txt', 'r').readlines():
                 self.index += 1
 
                 if self.index < self.current_organization:
@@ -97,7 +97,7 @@ class WebScraper:
                         time.sleep(self.DELAY)
 
         except Exception as e:
-            with open('logs/recheck_campus.txt', 'a') as f:
+            with open('src/logs/recheck_campus.txt', 'a') as f:
                 f.write(link)
 
         finally:

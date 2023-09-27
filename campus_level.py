@@ -11,10 +11,10 @@ from selenium.webdriver.common.by import By
 from src.scrapers.xpaths import LOAD_MORE_BUTTON, CATEGORY_DROPDOWN, CATEGORY_CHECKBOX, PARENT_DIV
 
 # Define file paths and constants
-LINKS_FILE_PATH = 'input/links.txt'
-OUTPUT_FILE_PATH = 'output/Organization_Information.csv'
-LOG_FILE_PATH = 'logs/recheck_campus.txt'
-PROGRESS_FILE_PATH = 'input/progress.pkl'
+LINKS_FILE_PATH = 'src/input/links.txt'
+OUTPUT_FILE_PATH = 'src/output/Organization_Information.csv'
+LOG_FILE_PATH = 'src/logs/recheck_campus.txt'
+PROGRESS_FILE_PATH = 'src/input/progress.pkl'
 DELAY = 1
 
 # Set up Chrome WebDriver
