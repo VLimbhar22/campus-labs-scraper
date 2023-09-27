@@ -8,7 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from xpaths import DESCRIPTION
+from src.scrapers.xpaths import DESCRIPTION
 
 LINKS_FILE_PATH = 'output/Organization_Information.csv'
 OUTPUT_FILE_PATH = 'output/Organization_Information_updated.csv'
