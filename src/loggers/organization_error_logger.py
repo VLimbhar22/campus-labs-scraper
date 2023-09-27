@@ -11,5 +11,5 @@ class OrganizationErrorLogger:
         self.writer = csv.writer(self.file)
 
     def log_error(self, data, error):
-        self.writer.write(data)
+        self.writer.writerow(data)
         print(error)
