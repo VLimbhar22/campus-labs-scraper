@@ -144,16 +144,20 @@ class DataScraper:
             self.progress_saver.save_progress(org_count=current_organization)
 
     def scrape_campuses(self, links_file='src/input/links.txt'):
+        """
+        Two-pass approach for campus-level scraping:
+          1) Extract each category link from the campus page (without attempting to load orgs).
+          2) Navigate to each category link individually to load & scrape orgs.
+        """
         current_link = ''
         current_campus = 0
         try:
-            # Loop through links
-
             campus_progress = self.progress_saver.get_campus_progress()
+
+            # Go through each campus link in links.txt
             for index, link in enumerate(open(links_file, 'r').readlines()):
                 current_link = link
                 current_campus = index
-
                 if index < campus_progress:
                     continue
 
@@ -161,50 +165,77 @@ class DataScraper:
                 self.driver.get(url)
                 time.sleep(max(DELAY, 10))
 
-                # Load all organizations
-                while True:
-                    try:
-                        load_more_button = self.driver.find_element(By.XPATH, LOAD_MORE_BUTTON)
-                        load_more_button.click()
-                        time.sleep(DELAY)
-                    except (NoSuchElementException, ElementClickInterceptedException):
-                        break
-
+                # Scroll to the top just in case
                 self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.CONTROL + Keys.HOME)
                 time.sleep(DELAY)
 
-                # Category wise selection
+                # ------------- PASS 1: Gather category links -------------
+                # 1a. Open the category dropdown
                 self.driver.find_element(By.XPATH, CATEGORY_DROPDOWN).click()
+                time.sleep(DELAY)
 
-                # Store all the categories and their corresponding XPATHS
+                # 1b. Identify the first checkbox + following categories
                 first_category = self.driver.find_element(By.XPATH, CATEGORY_CHECKBOX)
                 following_categories = first_category.find_elements(By.XPATH, "following-sibling::*")
                 first_category_name = first_category.text
                 first_category_checkbox = first_category.find_element(By.TAG_NAME, 'input')
 
-                all_names = [category.text for category in following_categories]
+                all_names = [cat.text for cat in following_categories]
                 all_names = [first_category_name] + all_names
 
-                all_checkboxes = [category.find_element(By.TAG_NAME, 'input') for category in following_categories]
+                all_checkboxes = [
+                    cat.find_element(By.TAG_NAME, 'input') for cat in following_categories
+                ]
                 all_checkboxes = [first_category_checkbox] + all_checkboxes
 
-                all_categories_links = {}
+                # We'll store each category name -> category link
+                # You need a reliable way to get a direct URL for the category.
+                # If the page doesn't change URL, you may need to find a hidden <a> or build your own link.
+                category_links = {}
 
-                for name, checkbox in zip(all_names, all_checkboxes):
-                    all_categories_links[name] = []
+                for cat_name, checkbox in zip(all_names, all_checkboxes):
+                    # Click the checkbox to filter by this category
                     checkbox.click()
                     time.sleep(DELAY)
+
+                    # Close the dropdown overlay by clicking outside (if needed)
+                    #body = self.driver.find_element(By.TAG_NAME, 'body')
+                    #body.click()
+                    #time.sleep(DELAY)
+
+                    # --- Retrieve or build the category link ---
+                    #The URL in the address bar changes each time we select a category:
+                    category_url = self.driver.current_url
+
+
+                    category_links[cat_name] = category_url
+
+                    # Uncheck the category so we can move on to the next
+                    checkbox.click()
+                    time.sleep(DELAY)
+
+                # ------------- PASS 2: For each category link, load & scrape orgs -------------
+                for cat_name, cat_link in category_links.items():
+                    self.driver.get(cat_link)
+                    time.sleep(DELAY)
+
+                    # Now do the "Load More" logic on this dedicated category page
+                    while True:
+                        try:
+                            load_more_button = self.driver.find_element(By.XPATH, LOAD_MORE_BUTTON)
+                            load_more_button.click()
+                            time.sleep(DELAY)
+                        except (NoSuchElementException, ElementClickInterceptedException):
+                            break
+
+                    # After loading all orgs, scrape them
                     parent_div = self.driver.find_element(By.XPATH, PARENT_DIV)
                     category_wise_organization_links = parent_div.find_elements(By.TAG_NAME, 'a')
-                    current_link = link[:link.rindex('/')]
-                    for org_link in category_wise_organization_links:
-                        self.campus_writer.save_to_csv([name, org_link.get_attribute('href')])
 
-                    checkbox.click()
-                    time.sleep(DELAY)
+                    for org_link in category_wise_organization_links:
+                        self.campus_writer.save_to_csv([cat_name, org_link.get_attribute('href')])
 
         except Exception as e:
             self.campus_error_logger.log_error(current_link, e)
-
         finally:
             self.progress_saver.save_progress(campus_count=current_campus)
