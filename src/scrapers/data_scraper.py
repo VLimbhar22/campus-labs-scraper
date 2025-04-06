@@ -6,7 +6,7 @@ from loggers.campus_error_logger import CampusErrorLogger
 from loggers.organization_error_logger import OrganizationErrorLogger
 from progress.progress_saver import ProgressSaver
 import time
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, TimeoutException
 from selenium.webdriver.common.by import By
 import pandas as pd
 from savers.data_saver import DataSaver
@@ -17,6 +17,9 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver import Chrome
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 
 DELAY = 1
 
@@ -43,6 +46,16 @@ class DataScraper:
 
     def _process_description(self, category, url):
         description = self.driver.find_element(By.XPATH, DESCRIPTION)
+
+            # Wait for the description element to be present (up to 20 seconds)
+        try:
+            description_element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, DESCRIPTION))
+            )
+        except TimeoutException:
+            print("Timeout: Description element not found.")
+            # Optionally log the error and exit this function
+            return
 
         name = ''
         logo = ''
